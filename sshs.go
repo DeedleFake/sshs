@@ -50,9 +50,22 @@ func main() {
 	addr := flag.String("addr", ":8080", "The address to listen on.")
 	tlscert := flag.String("tlscert", "", "TLS Certificate.")
 	tlskey := flag.String("tlskey", "", "TLS Key.")
+	cache := flag.Duration("cache", 0, "Amount of time to cache files for. 0 disables caching.")
 	flag.Parse()
 
-	http.Handle("/", logger(http.FileServer(http.Dir(*root))))
+	var fs http.FileSystem
+	fs = http.Dir(*root)
+	if *cache > 0 {
+		fs = &FSCache{
+			FS:      fs,
+			Timeout: *cache,
+		}
+	}
+
+	var handler http.Handler
+	handler = http.FileServer(fs)
+
+	http.Handle("/", logger(handler))
 
 	serve := httpServer(*addr)
 	if len(*tlscert)+len(*tlskey) > 0 {
