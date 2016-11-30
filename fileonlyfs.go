@@ -2,7 +2,7 @@ package main
 
 import (
 	"net/http"
-	"path/filepath"
+	"path"
 
 	"golang.org/x/sys/unix"
 )
@@ -28,7 +28,7 @@ func (fs FileOnlyFS) Open(name string) (http.File, error) {
 	}
 
 	if fi.IsDir() {
-		index, err := fs.FS.Open(filepath.Join(name, "index.html"))
+		index, err := fs.FS.Open(path.Join(name, "index.html"))
 		if err == nil {
 			index.Close()
 			return file, nil
