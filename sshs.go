@@ -51,10 +51,14 @@ func main() {
 	tlscert := flag.String("tlscert", "", "TLS Certificate.")
 	tlskey := flag.String("tlskey", "", "TLS Key.")
 	cache := flag.Duration("cache", 0, "Amount of time to cache files for. 0 disables caching.")
+	dirs := flag.Bool("dirs", false, "List directory contents when accessed.")
 	flag.Parse()
 
 	var fs http.FileSystem
 	fs = http.Dir(*root)
+	if !*dirs {
+		fs = &FileOnlyFS{FS: fs}
+	}
 	if *cache > 0 {
 		fs = &FSCache{
 			FS:      fs,
