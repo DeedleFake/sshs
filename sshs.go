@@ -16,20 +16,20 @@ func logger(h http.Handler) http.Handler {
 	})
 }
 
-func httpServer(addr string) func() {
+func httpServer(addr string, handler http.Handler) func() {
 	return func() {
 		log.Println("Starting HTTP server...")
-		err := http.ListenAndServe(addr, nil)
+		err := http.ListenAndServe(addr, handler)
 		if err != nil {
 			log.Fatalf("Error: Failed to start server on %q: %v", addr, err)
 		}
 	}
 }
 
-func httpsServer(addr, tlscert, tlskey string) func() {
+func httpsServer(addr, tlscert, tlskey string, handler http.Handler) func() {
 	return func() {
 		log.Println("Starting HTTPS server...")
-		err := http.ListenAndServeTLS(addr, tlscert, tlskey, nil)
+		err := http.ListenAndServeTLS(addr, tlscert, tlskey, handler)
 		if err != nil {
 			log.Fatalf("Error: Failed to start server on %q: %v", addr, err)
 		}
@@ -68,12 +68,11 @@ func main() {
 
 	var handler http.Handler
 	handler = http.FileServer(fs)
+	handler = logger(handler)
 
-	http.Handle("/", logger(handler))
-
-	serve := httpServer(*addr)
+	serve := httpServer(*addr, handler)
 	if len(*tlscert)+len(*tlskey) > 0 {
-		serve = httpsServer(*addr, *tlscert, *tlskey)
+		serve = httpsServer(*addr, *tlscert, *tlskey, handler)
 	}
 
 	serve()
