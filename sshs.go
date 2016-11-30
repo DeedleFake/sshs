@@ -46,11 +46,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Options:\n")
 		flag.PrintDefaults()
 	}
-	root := flag.String("root", "", "The root directory of the server.")
+	root := flag.String("root", "", "The root directory of the server. Defaults to the current directory.")
 	addr := flag.String("addr", ":8080", "The address to listen on.")
 	tlscert := flag.String("tlscert", "", "TLS Certificate.")
 	tlskey := flag.String("tlskey", "", "TLS Key.")
-	cache := flag.Duration("cache", 0, "Amount of time to cache files for. 0 disables caching.")
+	cache := flag.Duration("cache", 0, "Amount of time to cache files for. 0, the default, disables caching.")
 	dirs := flag.Bool("dirs", false, "List directory contents when accessed.")
 	flag.Parse()
 
