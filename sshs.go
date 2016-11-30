@@ -56,14 +56,14 @@ func main() {
 
 	var fs http.FileSystem
 	fs = http.Dir(*root)
-	if !*dirs {
-		fs = &FileOnlyFS{FS: fs}
-	}
 	if *cache > 0 {
 		fs = &FSCache{
 			FS:      fs,
 			Timeout: *cache,
 		}
+	}
+	if !*dirs {
+		fs = &FileOnlyFS{FS: fs}
 	}
 
 	var handler http.Handler
