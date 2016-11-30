@@ -10,11 +10,16 @@ import (
 	"time"
 )
 
+// FSCache is an http.FileSystem that wraps another http.FileSystem,
+// caching files accessed through it in memory.
 type FSCache struct {
-	once sync.Once
+	// The wrapped http.FileSystem.
+	FS http.FileSystem
 
-	FS      http.FileSystem
+	// The amount of time to cache files for.
 	Timeout time.Duration
+
+	once sync.Once
 
 	m sync.RWMutex
 	c map[string]*cacheEntry

@@ -6,7 +6,11 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// FileOnlyFS is an http.FileSystem that wraps another
+// http.FileSystem, restricting access to directories. Attempting to
+// access directories through it results in a 403 error.
 type FileOnlyFS struct {
+	// The wrapped http.FileSystem.
 	FS http.FileSystem
 }
 
