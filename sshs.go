@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func logger(h http.Handler) http.Handler {
@@ -36,8 +38,51 @@ func httpsServer(addr, tlscert, tlskey string, handler http.Handler) func() {
 	}
 }
 
+type mapFlag map[string]string
+
+func (flag mapFlag) String() string {
+	if len(flag) == 0 {
+		return ""
+	}
+
+	var buf bytes.Buffer
+
+	for k, v := range flag {
+		buf.WriteString(k)
+		buf.WriteByte(':')
+		buf.WriteString(v)
+		buf.WriteByte(',')
+	}
+
+	buf.Truncate(buf.Len() - 1)
+
+	return buf.String()
+}
+
+func (flag *mapFlag) Set(val string) error {
+	mappings := strings.Split(val, ",")
+	if *flag == nil {
+		*flag = make(mapFlag, len(mappings))
+	}
+
+	for _, m := range mappings {
+		parts := strings.Split(m, "~")
+		if len(parts) != 2 {
+			return fmt.Errorf("Invalid mapping: %q", m)
+		}
+
+		(*flag)[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+	}
+
+	return nil
+}
+
 func main() {
 	log.SetOutput(os.Stdout)
+
+	var (
+		redirects mapFlag
+	)
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %v [options]\n", os.Args[0])
@@ -52,6 +97,7 @@ func main() {
 	tlskey := flag.String("tlskey", "", "TLS Key.")
 	cache := flag.Duration("cache", 0, "Amount of time to cache files for. 0, the default, disables caching.")
 	dirs := flag.Bool("dirs", false, "List directory contents when accessed.")
+	flag.Var(&redirects, "redirects", "Comma-seperated list of from~to redirect mappings.")
 	flag.Parse()
 
 	var fs http.FileSystem
@@ -68,6 +114,7 @@ func main() {
 
 	var handler http.Handler
 	handler = http.FileServer(fs)
+	handler = redirector{H: handler, R: redirects}
 	handler = logger(handler)
 
 	serve := httpServer(*addr, handler)
