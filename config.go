@@ -26,12 +26,12 @@ func configImporter(from string) (*wdte.Module, error) {
 					}
 				}),
 
-				"root":     wdte.GoFunc(simpleRoot),
-				"addr":     wdte.GoFunc(simpleAddr),
-				"tls":      wdte.GoFunc(simpleTLS),
-				"cache":    wdte.GoFunc(simpleCache),
-				"dirs":     wdte.GoFunc(simpleDirs),
-				"redirect": wdte.GoFunc(simpleRedirect),
+				"root":          wdte.GoFunc(simpleRoot),
+				"addr":          wdte.GoFunc(simpleAddr),
+				"tls":           wdte.GoFunc(simpleTLS),
+				"cacheDuration": wdte.GoFunc(simpleCache),
+				"dirContents":   wdte.GoFunc(simpleDirs),
+				"addRedirect":   wdte.GoFunc(simpleRedirect),
 			},
 		}, nil
 
@@ -52,9 +52,9 @@ func fromConfig(config string) (func(), error) {
 		return nil, err
 	}
 
-	build, ok := m.Funcs["build"]
+	build, ok := m.Funcs["server"]
 	if !ok {
-		return nil, errors.New("No build function in config.")
+		return nil, errors.New("No server function in config.")
 	}
 	server := build.Call(wdte.F())
 	switch server := server.(type) {
@@ -64,7 +64,7 @@ func fromConfig(config string) (func(), error) {
 		return nil, server
 	}
 
-	return nil, fmt.Errorf("Unexpected return type from build: %T", server)
+	return nil, fmt.Errorf("Unexpected return type from server function: %T", server)
 }
 
 type Config struct {
