@@ -1,10 +1,10 @@
 FROM scratch
 
-MAINTAINER DeedleFake <deedlefake at hotmail dot com>
+MAINTAINER DeedleFake <deedlefake@users.noreply.github.com>
 
 VOLUME ["/data"]
 EXPOSE 8080
 
 COPY sshs /sshs
 
-ENTRYPOINT ["/sshs", "-root", "/data"]
+ENTRYPOINT ["/sshs"]
