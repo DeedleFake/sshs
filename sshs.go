@@ -111,27 +111,14 @@ func main() {
 		return
 	}
 
-	var fs http.FileSystem
-	fs = http.Dir(*root)
-	if *cache > 0 {
-		fs = &FSCache{
-			FS:      fs,
-			Timeout: *cache,
-		}
-	}
-	if !*dirs {
-		fs = &FileOnlyFS{FS: fs}
-	}
-
-	var handler http.Handler
-	handler = http.FileServer(fs)
-	handler = redirector{H: handler, R: redirects}
-	handler = logger(handler)
-
-	serve := httpServer(*addr, handler)
-	if len(*tlscert)+len(*tlskey) > 0 {
-		serve = httpsServer(*addr, *tlscert, *tlskey, handler)
-	}
-
+	serve := Config{
+		root:      *root,
+		addr:      *addr,
+		tlscert:   *tlscert,
+		tlskey:    *tlskey,
+		cache:     *cache,
+		dirs:      *dirs,
+		redirects: redirects,
+	}.server()
 	serve()
 }
