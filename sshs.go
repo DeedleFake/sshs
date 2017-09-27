@@ -97,8 +97,19 @@ func main() {
 	tlskey := flag.String("tlskey", "", "TLS Key.")
 	cache := flag.Duration("cache", 0, "Amount of time to cache files for. 0, the default, disables caching.")
 	dirs := flag.Bool("dirs", false, "List directory contents when accessed.")
+	config := flag.String("config", "", "The config file to use. If this is specified, all other options are ignored.")
 	flag.Var(&redirects, "redirects", "Comma-seperated list of from~to redirect mappings.")
 	flag.Parse()
+
+	if *config != "" {
+		serve, err := fromConfig(*config)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to load config from %q: %v\n", *config, err)
+			os.Exit(1)
+		}
+		serve()
+		return
+	}
 
 	var fs http.FileSystem
 	fs = http.Dir(*root)
